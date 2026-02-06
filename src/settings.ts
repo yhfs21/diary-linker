@@ -7,7 +7,7 @@ export interface DiaryLinkerSettings {
 }
 
 export const DEFAULT_SETTINGS: DiaryLinkerSettings = {
-	diaryFolder: "Daily",
+	diaryFolder: "Diary",
 	templatePath: ""
 };
 
