@@ -67,7 +67,7 @@ export class DiaryService {
 			await this.ensureFolder(yearFolder);
 			await this.ensureFolder(monthFolder);
 
-			const rootLinkTarget = this.toLinkTarget(templatePath);
+			const rootLinkTarget = this.toLinkTarget(diaryRootNotePath);
 			const yearLinkTarget = this.toLinkTarget(diaryRootNotePath);
 			const monthLinkTarget = this.toLinkTarget(yearNotePath);
 			const dayLinkTarget = this.toLinkTarget(monthNotePath);
