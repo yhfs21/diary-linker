@@ -19,6 +19,12 @@ export function formatDay(date: Date): string {
 	return `${year}-${month}-${day}`;
 }
 
+export function formatTime(date: Date): string {
+	const hours = pad2(date.getHours());
+	const minutes = pad2(date.getMinutes());
+	return `${hours}:${minutes}`;
+}
+
 export function startOfMonth(date: Date): Date {
 	return new Date(date.getFullYear(), date.getMonth(), 1);
 }

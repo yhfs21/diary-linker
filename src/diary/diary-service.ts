@@ -1,6 +1,6 @@
 import {App, Notice, TFile, TFolder} from "obsidian";
 import {DiaryLinkerSettings} from "../settings";
-import {formatDay, formatMonth, formatYear} from "../utils/dates";
+import {formatDay, formatMonth, formatTime, formatYear} from "../utils/dates";
 
 const PLACEHOLDER = "{{diary-link}}";
 const TEMPLATE_ROOT = "Templates";
@@ -61,6 +61,7 @@ export class DiaryService {
 		const yearNotePath = `${yearFolder}/${year}.md`;
 		const monthNotePath = `${monthFolder}/${month}.md`;
 		const dayNotePath = `${monthFolder}/${day}.md`;
+		const now = new Date();
 
 		try {
 			await this.ensureFolder(diaryRootFolder);
@@ -72,10 +73,34 @@ export class DiaryService {
 			const monthLinkTarget = this.toLinkTarget(yearNotePath);
 			const dayLinkTarget = this.toLinkTarget(monthNotePath);
 
-			await this.ensureNoteWithLink(diaryRootNotePath, templateContent, rootLinkTarget);
-			await this.ensureNoteWithLink(yearNotePath, templateContent, yearLinkTarget);
-			await this.ensureNoteWithLink(monthNotePath, templateContent, monthLinkTarget);
-			const dayNote = await this.ensureNoteWithLink(dayNotePath, templateContent, dayLinkTarget);
+			await this.ensureNoteWithLink(
+				diaryRootNotePath,
+				templateContent,
+				rootLinkTarget,
+				date,
+				now
+			);
+			await this.ensureNoteWithLink(
+				yearNotePath,
+				templateContent,
+				yearLinkTarget,
+				date,
+				now
+			);
+			await this.ensureNoteWithLink(
+				monthNotePath,
+				templateContent,
+				monthLinkTarget,
+				date,
+				now
+			);
+			const dayNote = await this.ensureNoteWithLink(
+				dayNotePath,
+				templateContent,
+				dayLinkTarget,
+				date,
+				now
+			);
 
 			const leaf = this.app.workspace.getLeaf(false);
 			await leaf.openFile(dayNote, {active: true});
@@ -136,7 +161,9 @@ export class DiaryService {
 	private async ensureNoteWithLink(
 		path: string,
 		templateContent: string,
-		linkTarget: string
+		linkTarget: string,
+		date: Date,
+		now: Date
 	): Promise<TFile> {
 		const link = `[[${linkTarget}]]`;
 		const existing = this.app.vault.getAbstractFileByPath(path);
@@ -147,7 +174,7 @@ export class DiaryService {
 			file = existing;
 			content = await this.app.vault.read(existing);
 		} else if (!existing) {
-			content = templateContent;
+			content = this.applyTemplatePlaceholders(templateContent, path, date, now);
 			file = await this.app.vault.create(path, "");
 		} else {
 			throw new Error(`Expected file at ${path}`);
@@ -166,5 +193,30 @@ export class DiaryService {
 		}
 
 		return file;
+	}
+
+	private applyTemplatePlaceholders(
+		templateContent: string,
+		path: string,
+		date: Date,
+		now: Date
+	): string {
+		const title = this.getTitleFromPath(path);
+		const dateText = formatDay(date);
+		const timeText = formatTime(now);
+
+		return templateContent
+			.split("{{title}}")
+			.join(title)
+			.split("{{date}}")
+			.join(dateText)
+			.split("{{time}}")
+			.join(timeText);
+	}
+
+	private getTitleFromPath(path: string): string {
+		const normalized = path.replace(/\\/g, "/");
+		const name = normalized.split("/").pop() ?? normalized;
+		return name.endsWith(".md") ? name.slice(0, -3) : name;
 	}
 }
