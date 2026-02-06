@@ -1,63 +1,64 @@
-import {App, Editor, MarkdownView, Modal, Notice, Plugin} from 'obsidian';
-import {DEFAULT_SETTINGS, DiaryLinkerSettings, DiaryLinkerSettingTab} from "./settings";
+import {Plugin, WorkspaceLeaf} from "obsidian";
+import {DiaryLinkerSettingTab, DEFAULT_SETTINGS, DiaryLinkerSettings} from "./settings";
+import {DiaryCalendarView, DIARY_CALENDAR_VIEW} from "./ui/calendar-view";
+import {DiaryService} from "./diary/diary-service";
 
 export default class DiaryLinkerPlugin extends Plugin {
 	settings: DiaryLinkerSettings;
+	diaryService: DiaryService;
 
 	async onload() {
 		await this.loadSettings();
+		this.diaryService = new DiaryService(this.app, this.settings);
 
-		this.addRibbonIcon('link', 'Diary Linker', () => {
-			new Notice('Diary Linker loaded');
-		});
-
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Diary Linker ready');
-
-		this.addCommand({
-			id: 'open-diary-linker-modal',
-			name: 'Open Diary Linker modal',
-			callback: () => {
-				new DiaryLinkerModal(this.app).open();
-			}
-		});
-
-		this.addCommand({
-			id: 'replace-selected-with-diary-link',
-			name: 'Replace selected with diary link',
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				void view;
-				editor.replaceSelection('[[Daily Note]]');
-			}
-		});
+		this.registerView(
+			DIARY_CALENDAR_VIEW,
+			(leaf: WorkspaceLeaf) => new DiaryCalendarView(leaf, this.diaryService)
+		);
 
 		this.addSettingTab(new DiaryLinkerSettingTab(this.app, this));
+
+		this.addCommand({
+			id: "open-diary-calendar",
+			name: "Open diary calendar",
+			callback: () => {
+				void this.activateCalendarView();
+			}
+		});
+
+		void this.activateCalendarView();
 	}
 
 	onunload() {
+		this.app.workspace.getLeavesOfType(DIARY_CALENDAR_VIEW).forEach((leaf) => leaf.detach());
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData() as Partial<DiaryLinkerSettings>);
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
-}
 
-class DiaryLinkerModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+	private async activateCalendarView(): Promise<void> {
+		const existingLeaves = this.app.workspace.getLeavesOfType(DIARY_CALENDAR_VIEW);
+		const existingLeaf = existingLeaves[0];
+		if (existingLeaf) {
+			this.app.workspace.revealLeaf(existingLeaf);
+			return;
+		}
 
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Diary Linker');
-	}
+		let leaf = this.app.workspace.getRightLeaf(false);
+		if (!leaf) {
+			leaf = this.app.workspace.createLeafBySplit(this.app.workspace.getLeaf());
+		}
 
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
+		if (!leaf) {
+			return;
+		}
+
+		await leaf.setViewState({type: DIARY_CALENDAR_VIEW, active: true});
+		this.app.workspace.revealLeaf(leaf);
 	}
 }
