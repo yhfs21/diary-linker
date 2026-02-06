@@ -1,4 +1,4 @@
-import {App, Notice, TAbstractFile, TFile, TFolder} from "obsidian";
+import {App, Notice, TFile, TFolder} from "obsidian";
 import {DiaryLinkerSettings} from "../settings";
 import {formatDay, formatMonth, formatYear} from "../utils/dates";
 
@@ -33,7 +33,7 @@ export class DiaryService {
 		}
 
 		if (!this.isTemplateInTemplatesFolder(templatePath)) {
-			new Notice("Template note must be inside the Templates folder.");
+			new Notice("Template note must be inside the templates folder.");
 			return;
 		}
 
@@ -83,6 +83,28 @@ export class DiaryService {
 			console.error("Diary Linker error", error);
 			new Notice("Failed to create or open diary note.");
 		}
+	}
+
+	getDayNotePath(date: Date): string {
+		const diaryFolder = this.settings.diaryFolder.trim();
+		const year = formatYear(date);
+		const month = formatMonth(date);
+		const day = formatDay(date);
+
+		const yearFolder = `${diaryFolder}/${year}`;
+		const monthFolder = `${yearFolder}/${month}`;
+		return `${monthFolder}/${day}.md`;
+	}
+
+	dayNoteExists(date: Date): boolean {
+		const diaryFolder = this.settings.diaryFolder.trim();
+		if (!diaryFolder) {
+			return false;
+		}
+
+		const dayNotePath = this.getDayNotePath(date);
+		const existing = this.app.vault.getAbstractFileByPath(dayNotePath);
+		return existing instanceof TFile;
 	}
 
 	private toLinkTarget(path: string): string {

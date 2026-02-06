@@ -24,6 +24,15 @@
 	cursor: pointer;
 }
 
+.diary-linker-calendar__today {
+	background: var(--background-modifier-border);
+	border: none;
+	border-radius: 4px;
+	padding: 4px 8px;
+	cursor: pointer;
+	font-size: 12px;
+}
+
 .diary-linker-calendar__grid {
 	display: grid;
 	grid-template-columns: repeat(7, 1fr);
@@ -52,4 +61,14 @@
 
 .diary-linker-calendar__day:hover {
 	background: var(--background-modifier-hover);
+}
+
+.diary-linker-calendar__day.is-today {
+	border-color: var(--interactive-accent);
+	box-shadow: 0 0 0 1px var(--interactive-accent);
+}
+
+.diary-linker-calendar__day.is-created {
+	background: var(--background-primary-alt);
+	font-weight: 600;
 }

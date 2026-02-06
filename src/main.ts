@@ -34,7 +34,8 @@ export default class DiaryLinkerPlugin extends Plugin {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const data = await this.loadData() as Partial<DiaryLinkerSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data ?? {});
 	}
 
 	async saveSettings() {
@@ -45,7 +46,7 @@ export default class DiaryLinkerPlugin extends Plugin {
 		const existingLeaves = this.app.workspace.getLeavesOfType(DIARY_CALENDAR_VIEW);
 		const existingLeaf = existingLeaves[0];
 		if (existingLeaf) {
-			this.app.workspace.revealLeaf(existingLeaf);
+			await this.app.workspace.revealLeaf(existingLeaf);
 			return;
 		}
 
@@ -59,6 +60,6 @@ export default class DiaryLinkerPlugin extends Plugin {
 		}
 
 		await leaf.setViewState({type: DIARY_CALENDAR_VIEW, active: true});
-		this.app.workspace.revealLeaf(leaf);
+		await this.app.workspace.revealLeaf(leaf);
 	}
 }

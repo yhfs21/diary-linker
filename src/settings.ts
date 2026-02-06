@@ -29,10 +29,8 @@ export class DiaryLinkerSettingTab extends PluginSettingTab {
 			.addText((text) => text
 				.setPlaceholder("Daily")
 				.setValue(this.plugin.settings.diaryFolder)
-				.onChange(async (value) => {
-					this.plugin.settings.diaryFolder = value.trim();
-					this.plugin.diaryService.updateSettings(this.plugin.settings);
-					await this.plugin.saveSettings();
+				.onChange((value) => {
+					void this.updateDiaryFolder(value);
 				})
 			);
 
@@ -43,14 +41,14 @@ export class DiaryLinkerSettingTab extends PluginSettingTab {
 		let setTemplateValue: ((value: string) => void) | null = null;
 		templateSetting.addText((text) => {
 			text.inputEl.setAttr("readonly", "true");
-			setTemplateValue = (value: string) => text.setValue(value);
+			setTemplateValue = (value: string) => {
+				text.setValue(value);
+			};
 			return text
 				.setPlaceholder("Templates/YourTemplate.md")
 				.setValue(this.plugin.settings.templatePath)
-				.onChange(async (value) => {
-					this.plugin.settings.templatePath = value.trim();
-					this.plugin.diaryService.updateSettings(this.plugin.settings);
-					await this.plugin.saveSettings();
+				.onChange((value) => {
+					void this.updateTemplatePath(value);
 				});
 		});
 
@@ -66,6 +64,18 @@ export class DiaryLinkerSettingTab extends PluginSettingTab {
 				modal.open();
 			});
 		});
+	}
+
+	private async updateDiaryFolder(value: string): Promise<void> {
+		this.plugin.settings.diaryFolder = value.trim();
+		this.plugin.diaryService.updateSettings(this.plugin.settings);
+		await this.plugin.saveSettings();
+	}
+
+	private async updateTemplatePath(value: string): Promise<void> {
+		this.plugin.settings.templatePath = value.trim();
+		this.plugin.diaryService.updateSettings(this.plugin.settings);
+		await this.plugin.saveSettings();
 	}
 }
 

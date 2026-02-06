@@ -21,7 +21,7 @@ export class DiaryCalendarView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "Diary Calendar";
+		return "Diary calendar";
 	}
 
 	async onOpen(): Promise<void> {
@@ -97,10 +97,14 @@ export class DiaryCalendarView extends ItemView {
 				dayButton.addClass("is-created");
 			}
 
-			dayButton.addEventListener("click", async () => {
-				await this.diaryService.openOrCreateForDate(targetDate);
-				this.render();
+			dayButton.addEventListener("click", () => {
+				void this.handleDayClick(targetDate);
 			});
 		}
+	}
+
+	private async handleDayClick(date: Date): Promise<void> {
+		await this.diaryService.openOrCreateForDate(date);
+		this.render();
 	}
 }
