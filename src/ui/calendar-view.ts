@@ -24,6 +24,10 @@ export class DiaryCalendarView extends ItemView {
 		return "Diary calendar";
 	}
 
+	getIcon(): string {
+		return "calendar-days";
+	}
+
 	async onOpen(): Promise<void> {
 		this.render();
 	}
