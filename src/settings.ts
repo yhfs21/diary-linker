@@ -1,18 +1,18 @@
 import {App, PluginSettingTab, Setting} from "obsidian";
-import MyPlugin from "./main";
+import DiaryLinkerPlugin from "./main";
 
-export interface MyPluginSettings {
-	mySetting: string;
+export interface DiaryLinkerSettings {
+	diaryFolder: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: 'default'
-}
+export const DEFAULT_SETTINGS: DiaryLinkerSettings = {
+	diaryFolder: "Daily"
+};
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class DiaryLinkerSettingTab extends PluginSettingTab {
+	plugin: DiaryLinkerPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: DiaryLinkerPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -23,13 +23,13 @@ export class SampleSettingTab extends PluginSettingTab {
 		containerEl.empty();
 
 		new Setting(containerEl)
-			.setName('Settings #1')
-			.setDesc('It\'s a secret')
+			.setName("Diary folder")
+			.setDesc("Daily notes folder name")
 			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.mySetting)
+				.setPlaceholder("Daily")
+				.setValue(this.plugin.settings.diaryFolder)
 				.onChange(async (value) => {
-					this.plugin.settings.mySetting = value;
+					this.plugin.settings.diaryFolder = value.trim();
 					await this.plugin.saveSettings();
 				}));
 	}
