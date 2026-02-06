@@ -44,10 +44,16 @@ export class DiaryCalendarView extends ItemView {
 		const headerEl = contentEl.createDiv({cls: "diary-linker-calendar__header"});
 		const prevButton = headerEl.createEl("button", {text: "<", cls: "diary-linker-calendar__nav"});
 		const titleEl = headerEl.createDiv({cls: "diary-linker-calendar__title"});
+		const todayButton = headerEl.createEl("button", {text: "Today", cls: "diary-linker-calendar__today"});
 		const nextButton = headerEl.createEl("button", {text: ">", cls: "diary-linker-calendar__nav"});
 
 		prevButton.addEventListener("click", () => {
 			this.currentMonth = addMonths(this.currentMonth, -1);
+			this.render();
+		});
+
+		todayButton.addEventListener("click", () => {
+			this.currentMonth = startOfMonth(new Date());
 			this.render();
 		});
 
@@ -72,15 +78,28 @@ export class DiaryCalendarView extends ItemView {
 			gridEl.createDiv({cls: "diary-linker-calendar__empty"});
 		}
 
+		const today = new Date();
+		const isCurrentMonth =
+			today.getFullYear() === year && today.getMonth() === monthIndex;
+
 		for (let day = 1; day <= daysInMonth; day += 1) {
+			const targetDate = new Date(year, monthIndex, day);
 			const dayButton = gridEl.createEl("button", {
 				text: day.toString(),
 				cls: "diary-linker-calendar__day"
 			});
 
-			dayButton.addEventListener("click", () => {
-				const targetDate = new Date(year, monthIndex, day);
-				void this.diaryService.openOrCreateForDate(targetDate);
+			if (isCurrentMonth && day === today.getDate()) {
+				dayButton.addClass("is-today");
+			}
+
+			if (this.diaryService.dayNoteExists(targetDate)) {
+				dayButton.addClass("is-created");
+			}
+
+			dayButton.addEventListener("click", async () => {
+				await this.diaryService.openOrCreateForDate(targetDate);
+				this.render();
 			});
 		}
 	}
