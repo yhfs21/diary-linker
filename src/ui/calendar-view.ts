@@ -28,11 +28,11 @@ export class DiaryCalendarView extends ItemView {
 		return "calendar-days";
 	}
 
-	onOpen(): void {
+	async onOpen(): Promise<void> {
 		this.render();
 	}
 
-	onClose(): void {
+	async onClose(): Promise<void> {
 		this.contentEl.empty();
 	}
 

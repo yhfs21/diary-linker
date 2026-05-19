@@ -1,0 +1,57 @@
+name: Release
+
+on:
+    push:
+        tags:
+            - "*.*.*"
+    workflow_dispatch:
+
+permissions:
+    contents: write
+    id-token: write
+    attestations: write
+    artifact-metadata: write
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22.x
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Verify release version
+              if: github.event_name == 'push'
+              run: |
+                  TAG="${GITHUB_REF_NAME}"
+                  MANIFEST_VERSION="$(node -p "require('./manifest.json').version")"
+                  if [ "$TAG" != "$MANIFEST_VERSION" ]; then
+                    echo "Tag $TAG must match manifest.json version $MANIFEST_VERSION"
+                    exit 1
+                  fi
+
+            - name: Build
+              run: npm run build
+
+            - name: Attest release artifacts
+              uses: actions/attest@v4
+              with:
+                  subject-path: |
+                      ${{ github.workspace }}/main.js
+                      ${{ github.workspace }}/manifest.json
+                      ${{ github.workspace }}/styles.css
+
+            - name: Upload release assets
+              if: github.event_name == 'push'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: gh release create "$GITHUB_REF_NAME" main.js manifest.json styles.css --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
